@@ -1,0 +1,342 @@
+// use prisma-next
+
+model Merchant {
+  id            Int                   @id @default(autoincrement())
+  name          String
+  businessName  String
+  email         String
+  currency      String                @default("INR")
+  timezone      String                @default("Asia/Kolkata")
+  isActive      Boolean               @default(true)
+
+  users         User[]
+  integrations  MerchantIntegration[]
+  customers     Customer[]
+  segments      CustomerSegment[]
+  orders        Order[]
+  payments      Payment[]
+  riskCases      RiskCase[]
+  auditLogs      AuditLog[]
+  webhookEvents  WebhookEvent[]
+
+  @@index([email])
+  @@index([isActive])
+  @@map("merchants")
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  merchantId   Int
+  email        String    @unique
+  passwordHash String
+  name         String?
+  role         String    @default("MERCHANT_USER")
+  isActive     Boolean   @default(true)
+
+  merchant     Merchant  @relation(fields: [merchantId], references: [id])
+  sessions     Session[]
+
+  @@index([merchantId])
+  @@map("users")
+}
+
+model Session {
+  id         Int       @id @default(autoincrement())
+  userId     Int
+  tokenHash  String    @unique
+  expiresAt  DateTime
+
+  user       User      @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+model MerchantIntegration {
+  id              Int       @id @default(autoincrement())
+  merchantId      Int
+  provider        String
+  status          String    @default("ACTIVE")
+  publicKey       String?
+  secretReference String?
+  webhookSecretRef String?
+  configuration   Json?
+  lastSyncedAt    DateTime?
+
+  merchant        Merchant  @relation(fields: [merchantId], references: [id])
+
+  @@unique([merchantId, provider])
+  @@index([merchantId])
+  @@map("merchant_integrations")
+}
+
+model CustomerSegment {
+  id          Int        @id @default(autoincrement())
+  merchantId  Int
+  name        String
+  description String?
+
+  merchant    Merchant   @relation(fields: [merchantId], references: [id])
+  customers   Customer[]
+
+  @@unique([merchantId, name])
+  @@index([merchantId])
+  @@map("customer_segments")
+}
+
+model Customer {
+  id                 Int              @id @default(autoincrement())
+  merchantId         Int
+  externalCustomerId String?
+  name               String
+  email              String?
+  phone              String?
+  status             String           @default("ACTIVE")
+  segmentId          Int?
+
+  merchant            Merchant         @relation(fields: [merchantId], references: [id])
+  segment             CustomerSegment? @relation(fields: [segmentId], references: [id])
+  orders              Order[]
+  payments            Payment[]
+
+  @@unique([merchantId, externalCustomerId])
+  @@index([merchantId])
+  @@index([email])
+  @@index([segmentId])
+  @@map("customers")
+}
+
+model Order {
+  id              Int       @id @default(autoincrement())
+  merchantId      Int
+  customerId      Int?
+  razorpayOrderId String?   @unique
+  amount          Int
+  currency        String    @default("INR")
+  status          String    @default("CREATED")
+  createdAt       DateTime  @default(now())
+
+  merchant        Merchant  @relation(fields: [merchantId], references: [id])
+  customer        Customer? @relation(fields: [customerId], references: [id])
+  payments        Payment[]
+
+  @@index([merchantId])
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model Payment {
+  id                Int       @id @default(autoincrement())
+  merchantId        Int
+  orderId           Int?
+  customerId        Int?
+  razorpayPaymentId String?   @unique
+  amount            Int
+  currency          String    @default("INR")
+  status            String    @default("CREATED")
+  method            String?
+  capturedAt        DateTime?
+  failedAt          DateTime?
+  createdAt         DateTime  @default(now())
+
+  merchant          Merchant  @relation(fields: [merchantId], references: [id])
+  order             Order?    @relation(fields: [orderId], references: [id])
+  customer          Customer? @relation(fields: [customerId], references: [id])
+  attempts          PaymentAttempt[]
+  riskCases 	    RiskCase[]
+
+  @@index([merchantId])
+  @@index([orderId])
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("payments")
+}
+
+model PaymentAttempt {
+  id            Int       @id @default(autoincrement())
+  paymentId     Int
+  attemptNumber Int
+  status        String    @default("INITIATED")
+  failureCode   String?
+  failureReason String?
+  method        String?
+  attemptedAt   DateTime  @default(now())
+
+  payment       Payment  @relation(fields: [paymentId], references: [id])
+
+  @@unique([paymentId, attemptNumber])
+  @@index([paymentId])
+  @@index([status])
+  @@map("payment_attempts")
+}
+
+model RiskCase {
+  id             Int       @id @default(autoincrement())
+  merchantId     Int
+  paymentId      Int
+  status         String    @default("OPEN")
+  riskType       String
+  amountAtRisk   Int
+  detectedAt     DateTime  @default(now())
+  resolvedAt     DateTime?
+  resolutionNote String?
+
+  merchant       Merchant  @relation(fields: [merchantId], references: [id])
+  payment        Payment   @relation(fields: [paymentId], references: [id])
+  predictions    RiskPrediction[]
+  decisions      AIDecision[]
+  recoveryActions RecoveryAction[]
+
+  @@index([merchantId])
+  @@index([paymentId])
+  @@index([status])
+  @@index([detectedAt])
+  @@map("risk_cases")
+}
+
+model RiskPrediction {
+  id                  Int       @id @default(autoincrement())
+  riskCaseId          Int
+  modelVersion        String
+  riskScore           Float
+  recoveryProbability Float
+  confidence          Float
+  featuresSnapshot    Json?
+  predictedAt         DateTime  @default(now())
+
+  riskCase             RiskCase  @relation(fields: [riskCaseId], references: [id])
+
+  @@index([riskCaseId])
+  @@index([modelVersion])
+  @@index([predictedAt])
+  @@map("risk_predictions")
+}
+
+model AIDecision {
+  id                Int       @id @default(autoincrement())
+  riskCaseId        Int
+  decisionType      String
+  recommendedAction String
+  confidence        Float
+  reasoningSummary  String
+  modelVersion      String
+  createdAt         DateTime  @default(now())
+
+  riskCase          RiskCase  @relation(fields: [riskCaseId], references: [id])
+  recoveryActions   RecoveryAction[]
+
+  @@index([riskCaseId])
+  @@index([decisionType])
+  @@index([createdAt])
+  @@map("ai_decisions")
+}
+
+model RecoveryAction {
+  id           Int       @id @default(autoincrement())
+  riskCaseId   Int
+  aiDecisionId Int?
+  actionType   String
+  status       String    @default("PENDING")
+  scheduledAt  DateTime?
+  executedAt   DateTime?
+  createdAt    DateTime  @default(now())
+
+  riskCase     RiskCase  @relation(fields: [riskCaseId], references: [id])
+  aiDecision   AIDecision? @relation(fields: [aiDecisionId], references: [id])
+  attempts     RecoveryAttempt[]
+  outcomes     RecoveryOutcome[]
+
+  @@index([riskCaseId])
+  @@index([aiDecisionId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@map("recovery_actions")
+}
+
+model RecoveryAttempt {
+  id                Int       @id @default(autoincrement())
+  recoveryActionId  Int
+  attemptNumber     Int
+  status            String    @default("STARTED")
+  externalReference String?
+  errorCode         String?
+  errorMessage      String?
+  startedAt         DateTime  @default(now())
+  completedAt       DateTime?
+
+  recoveryAction    RecoveryAction @relation(fields: [recoveryActionId], references: [id])
+
+  @@unique([recoveryActionId, attemptNumber])
+  @@index([recoveryActionId])
+  @@index([status])
+  @@map("recovery_attempts")
+}
+
+model RecoveryOutcome {
+  id                Int       @id @default(autoincrement())
+  recoveryActionId  Int
+  outcomeType       String
+  recoveredAmount   Int       @default(0)
+  status            String    @default("PENDING")
+  externalReference String?
+  failureReason     String?
+  occurredAt        DateTime  @default(now())
+
+  recoveryAction    RecoveryAction @relation(fields: [recoveryActionId], references: [id])
+
+  @@index([recoveryActionId])
+  @@index([outcomeType])
+  @@index([status])
+  @@index([occurredAt])
+  @@map("recovery_outcomes")
+}
+
+model AuditLog {
+  id           Int       @id @default(autoincrement())
+  merchantId   Int
+  actorType    String
+  actorId      Int?
+  eventType    String
+  entityType   String
+  entityId     Int?
+  description  String?
+  metadata     Json?
+  createdAt    DateTime  @default(now())
+
+  merchant     Merchant  @relation(fields: [merchantId], references: [id])
+
+  @@index([merchantId])
+  @@index([actorType])
+  @@index([eventType])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model WebhookEvent {
+  id               Int       @id @default(autoincrement())
+  merchantId       Int
+  provider         String
+  eventId          String
+  eventType        String
+  payload          Json
+  signature        String?
+  processingStatus String    @default("RECEIVED")
+  processedAt      DateTime?
+  errorMessage     String?
+  receivedAt       DateTime  @default(now())
+
+  merchant         Merchant  @relation(fields: [merchantId], references: [id])
+
+  @@unique([provider, eventId])
+  @@index([merchantId])
+  @@index([provider])
+  @@index([eventType])
+  @@index([processingStatus])
+  @@index([receivedAt])
+  @@map("webhook_events")
+}

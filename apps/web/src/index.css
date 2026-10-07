@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-300: #93c5fd;
+  --color-brand-400: #60a5fa;
+  --color-brand-500: #3b82f6;
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-brand-800: #1e40af;
+  --color-brand-900: #1e3a8a;
+  --color-brand-950: #172554;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+  --font-sans: Inter, system-ui, sans-serif;
+  --animate-marquee: marquee 30s linear infinite;
+
+  /* Landing Page Variables (Phase 18A) */
+  --color-landing-ivory: #F4F1EA;
+  --color-landing-surface: #FFFCF7;
+  --color-landing-graphite: #171717;
+  --color-landing-deep: #111111;
+  --color-landing-text-sec: #6B6862;
+  --color-landing-champagne: #C7A64A;
+  --color-landing-champagne-light: #E9D9A7;
+  --color-landing-border: #DED9CF;
+  --color-landing-success: #3F6B4F;
+  --color-landing-failure: #8A3F3F;
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@layer base {
+  body {
+    @apply bg-landing-ivory text-landing-graphite antialiased font-sans;
+  }
+}

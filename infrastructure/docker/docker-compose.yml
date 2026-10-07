@@ -1,0 +1,26 @@
+services:
+
+  postgres:
+    image: postgres:17
+    container_name: recoveriq-postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: recoveriq
+      POSTGRES_PASSWORD: recoveriq_dev_password
+      POSTGRES_DB: recoveriq
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - recoveriq_postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U recoveriq -d recoveriq"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  recoveriq_postgres_data:
