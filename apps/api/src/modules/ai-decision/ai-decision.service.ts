@@ -2,7 +2,7 @@ import { db } from "../../prisma/db.js";
 import { getRiskLevelFromScore } from "../risk/risk.service.js";
 import { OpenAI } from "openai";
 import { z } from "zod";
-import { zodResponseFormat } from "openai/helpers/zod";
+import { zodTextFormat } from "openai/helpers/zod";
 
 const decisionSchema = z.object({
   recommendedAction: z.enum(["MANUAL_REVIEW", "RETRY", "ALTERNATE_METHOD"]),
@@ -143,24 +143,15 @@ export async function generateAIDecision(merchantId: number, riskCaseId: number)
       customer: customerInfo
     };
 
-    const completion = await openai.beta.chat.completions.parse({
+    const response = await openai.responses.parse({
       model,
-      messages: [
-        {
-          role: "system",
-          content: "You are a payment-recovery decision assistant. Analyze the supplied RiskCase context, payment failure info, and risk predictions. Choose exactly one allowed recommendedAction. Provide concise reasoning and a confidence score from 0.0 to 1.0. NEVER invent missing facts or transaction info. NEVER claim an action was actually executed."
-        },
-        {
-          role: "user",
-          content: JSON.stringify(promptContext)
-        }
-      ],
-      response_format: zodResponseFormat(decisionSchema, "decision"),
-      temperature: 0.1,
-      timeout: 10000 // 10s timeout to prevent hanging the API request
-    });
+      instructions: "You are a payment-recovery decision assistant. Analyze the supplied RiskCase context, payment failure info, and risk predictions. Choose exactly one allowed recommendedAction. Provide concise reasoning and a confidence score from 0.0 to 1.0. NEVER invent missing facts or transaction info. NEVER claim an action was actually executed.",
+      input: JSON.stringify(promptContext),
+      text: { format: zodTextFormat(decisionSchema, "decision") },
+      temperature: 0.1
+    }, { timeout: 10000 }); // 10s timeout to prevent hanging the API request
 
-    const decisionObj = completion.choices[0].message.parsed;
+    const decisionObj = response.output_parsed;
     if (!decisionObj) {
       throw new Error("OpenAI returned empty structured response");
     }
