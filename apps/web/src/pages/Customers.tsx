@@ -62,20 +62,20 @@ export function Customers() {
     fetchCustomers();
   }, []);
 
-  const mapBackendCustomer = (c: ApiCustomer): MockCustomer => ({
+  const mapBackendCustomer = (c: any): MockCustomer => ({
     id: String(c.id),
     name: c.name,
     email: c.email || '',
     phone: c.phone || '',
     externalCustomerId: c.externalCustomerId || '',
     status: c.status === 'Active' || c.status === 'ACTIVE' ? 'Active' : 'Inactive',
-    segment: 'New', // Safe empty state/default until segments are integrated
-    ordersCount: 0,
-    paymentsCount: 0,
-    failedPayments: 0,
-    recoveredAmount: 0,
-    recoveryRate: 0,
-    lastActivity: 'N/A' // Placeholder
+    segment: c.segmentName || 'New',
+    ordersCount: c.ordersCount || 0,
+    paymentsCount: c.paymentsCount || 0,
+    failedPayments: c.failedPayments || 0,
+    recoveredAmount: c.recoveredAmount || 0,
+    recoveryRate: c.recoveryRate || 0,
+    lastActivity: c.lastActivityDate ? new Date(c.lastActivityDate).toLocaleDateString() : 'N/A'
   });
 
   const fetchCustomers = async () => {
@@ -95,13 +95,16 @@ export function Customers() {
     }
   };
 
+  const [detailedCustomerData, setDetailedCustomerData] = useState<any>(null);
+
   const handleOpenDetail = async (customer: MockCustomer) => {
     setActiveMenu(null);
-    // Fetch fresh details from backend
+    setDetailedCustomerData(null);
     try {
-      const res = await fetchApi(`/customers/${customer.id}`);
+      const res = await fetchApi(`/customers/${customer.id}/intelligence`);
       if (res.success) {
         setSelectedCustomer(mapBackendCustomer(res.data.customer));
+        setDetailedCustomerData(res.data.customer);
         setIsDetailOpen(true);
       }
     } catch (err) {
@@ -543,6 +546,7 @@ export function Customers() {
       {/* Modals & Drawers */}
       <CustomerDetailDrawer 
         customer={selectedCustomer} 
+        rawDetails={detailedCustomerData}
         isOpen={isDetailOpen} 
         onClose={() => setIsDetailOpen(false)} 
       />

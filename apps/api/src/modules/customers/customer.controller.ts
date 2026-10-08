@@ -5,6 +5,7 @@ import {
   createCustomer,
   getCustomers,
   getCustomerById,
+  getCustomerIntelligence,
   updateCustomer,
   deleteCustomer,
 } from "./customer.service.js";
@@ -86,6 +87,34 @@ export async function get(req: AuthenticatedRequest, res: Response) {
     return res.status(500).json({
       success: false,
       message: "Unable to get customer",
+    });
+  }
+}
+
+export async function getIntelligence(req: AuthenticatedRequest, res: Response) {
+  try {
+    const merchantId = req.user!.merchantId;
+    const id = parseInt(req.params.id as string, 10);
+
+    if (isNaN(id)) {
+      return res.status(400).json({ success: false, message: "Invalid ID format" });
+    }
+
+    const customer = await getCustomerIntelligence(merchantId, id);
+
+    if (!customer) {
+      return res.status(404).json({ success: false, message: "Customer not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: { customer },
+    });
+  } catch (error) {
+    console.error("Get customer intelligence error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Unable to get customer intelligence",
     });
   }
 }

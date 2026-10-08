@@ -2,24 +2,24 @@ import { X } from "lucide-react"
 import { Badge } from "../ui/Badge"
 import { Button } from "../ui/Button"
 import { Card, CardContent } from "../ui/Card"
-import { type MockCustomer, type MockOrder, type MockPayment, type MockRecoveryActivity } from "../../data/customer.mock"
+import { type MockCustomer } from "../../data/customer.mock"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/Table"
 
 interface CustomerDetailDrawerProps {
   customer: MockCustomer | null;
+  rawDetails?: any;
   isOpen: boolean;
   onClose: () => void;
 }
 
-export function CustomerDetailDrawer({ customer, isOpen, onClose }: CustomerDetailDrawerProps) {
+export function CustomerDetailDrawer({ customer, rawDetails, isOpen, onClose }: CustomerDetailDrawerProps) {
   if (!isOpen || !customer) return null;
 
-  // Real backend does not yet return populated relations (orders, payments, recoveryActivity)
-  // We use safe empty arrays to preserve the layout until they are integrated.
-  const details: { orders: MockOrder[], payments: MockPayment[], recoveryActivity: MockRecoveryActivity[] } = {
-    orders: [],
-    payments: [],
-    recoveryActivity: []
+  // Map raw details from backend or use empty arrays if not available
+  const details = {
+    orders: rawDetails?.ordersCount ? Array(rawDetails.ordersCount).fill({}) : [],
+    payments: rawDetails?.recentPayments || [],
+    recoveryActivity: rawDetails?.recoveryActivity || []
   };
 
   return (
@@ -108,7 +108,7 @@ export function CustomerDetailDrawer({ customer, isOpen, onClose }: CustomerDeta
             <Card className="shadow-sm border-landing-border/40 bg-landing-surface">
               <CardContent className="p-0">
                 <div className="relative border-l-2 border-landing-border/40 ml-6 my-6 space-y-6">
-                  {details.recoveryActivity.map((act) => (
+                  {details.recoveryActivity.map((act: any) => (
                     <div key={act.id} className="relative pl-6 pr-4">
                       <div className="absolute -left-[9px] top-0.5 w-4 h-4 rounded-full border-2 border-landing-surface bg-landing-champagne"></div>
                       <div className="flex flex-col">
@@ -144,7 +144,7 @@ export function CustomerDetailDrawer({ customer, isOpen, onClose }: CustomerDeta
                   </TableRow>
                 </TableHeader>
                 <TableBody className="divide-y divide-landing-border/40">
-                  {details.payments.map((payment) => (
+                  {details.payments.map((payment: any) => (
                     <TableRow key={payment.id} className="hover:bg-landing-ivory/30 transition-colors">
                       <TableCell className="text-sm font-semibold text-landing-text-sec">{new Date(payment.date).toLocaleDateString()}</TableCell>
                       <TableCell className="font-bold text-landing-graphite">₹{payment.amount.toLocaleString()}</TableCell>
