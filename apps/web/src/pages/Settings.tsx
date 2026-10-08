@@ -4,6 +4,11 @@ import { AccountSettings } from "../components/settings/AccountSettings"
 import { GeneralSettings } from "../components/settings/GeneralSettings"
 import { SecuritySettings } from "../components/settings/SecuritySettings"
 import { TeamSettings } from "../components/settings/TeamSettings"
+import { NotificationsSettings } from "../components/settings/NotificationsSettings"
+import { RecoverySettings } from "../components/settings/RecoverySettings"
+import { RiskSettings } from "../components/settings/RiskSettings"
+import { DangerZoneSettings } from "../components/settings/DangerZoneSettings"
+import { BillingSettings } from "../components/settings/BillingSettings"
 
 type SettingsTab = 'General' | 'Account' | 'Security' | 'Notifications' | 'Recovery' | 'Risk' | 'Team' | 'Billing' | 'Danger Zone';
 
@@ -15,9 +20,9 @@ export function Settings() {
     { id: 'Account', label: 'ACCOUNT', description: 'Personal profile', status: 'AVAILABLE' },
     { id: 'Security', label: 'SECURITY', description: 'Password & sessions', status: 'AVAILABLE' },
     { id: 'Team', label: 'TEAM', description: 'Manage access', status: 'AVAILABLE' },
-    { id: 'Notifications', label: 'NOTIFICATIONS', description: 'Alert preferences', status: 'COMING SOON' },
-    { id: 'Recovery', label: 'RECOVERY', description: 'Engine preferences', status: 'COMING SOON' },
-    { id: 'Risk', label: 'RISK', description: 'AI configuration', status: 'COMING SOON' },
+    { id: 'Notifications', label: 'NOTIFICATIONS', description: 'Alert preferences', status: 'AVAILABLE' },
+    { id: 'Recovery', label: 'RECOVERY', description: 'Engine preferences', status: 'AVAILABLE' },
+    { id: 'Risk', label: 'RISK', description: 'AI configuration', status: 'AVAILABLE' },
     { id: 'Billing', label: 'BILLING', description: 'Subscription', status: 'COMING SOON' },
     { id: 'Danger Zone', label: 'DANGER ZONE', description: 'Destructive actions', status: 'RESTRICTED' },
   ];
@@ -49,6 +54,16 @@ export function Settings() {
         return <SecuritySettings />;
       case 'Team':
         return <TeamSettings />;
+      case 'Notifications':
+        return <NotificationsSettings />;
+      case 'Recovery':
+        return <RecoverySettings />;
+      case 'Risk':
+        return <RiskSettings />;
+      case 'Billing':
+        return <BillingSettings />;
+      case 'Danger Zone':
+        return <DangerZoneSettings />;
       default:
         return (
           <div className="flex-1 flex flex-col items-center justify-center py-32 px-4 text-center border border-[#DED9CF] rounded-2xl bg-[#FFFCF7] shadow-sm">
@@ -59,9 +74,9 @@ export function Settings() {
                 <SettingsIcon className="h-8 w-8 text-[#6B6862]" />
               )}
             </div>
-            <h2 className="text-xl font-semibold text-[#111111] mb-2">{activeTab.toUpperCase()}</h2>
+            <h2 className="text-xl font-semibold text-[#111111] mb-2">{(activeTab as string).toUpperCase()}</h2>
             <p className="text-[#6B6862] max-w-md mx-auto">
-              {getUnavailableMessage(activeTab)}
+              {getUnavailableMessage(activeTab as SettingsTab)}
             </p>
           </div>
         );

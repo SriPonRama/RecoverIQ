@@ -18,6 +18,7 @@ model Merchant {
   riskCases      RiskCase[]
   auditLogs      AuditLog[]
   webhookEvents  WebhookEvent[]
+  settings       MerchantSettings?
 
   @@index([email])
   @@index([isActive])
@@ -339,4 +340,32 @@ model WebhookEvent {
   @@index([processingStatus])
   @@index([receivedAt])
   @@map("webhook_events")
+}
+
+model MerchantSettings {
+  id                               Int      @id @default(autoincrement())
+  merchantId                       Int      @unique
+  
+  // Notification configuration
+  notifyOnPaymentFailure           Boolean  @default(true)
+  notifyOnRecoverySuccess          Boolean  @default(true)
+  notifyOnRiskAlert                Boolean  @default(false)
+  notifyOnAIDecision               Boolean  @default(false)
+
+  // Recovery configuration
+  automaticRecoveryEnabled         Boolean  @default(false)
+  maxRetryAttempts                 Int      @default(3)
+  retryDelayHours                  Int      @default(24)
+  allowAlternateMethods            Boolean  @default(false)
+
+  // Risk configuration
+  lowRiskThreshold                 Int      @default(30)
+  mediumRiskThreshold              Int      @default(60)
+  highRiskThreshold                Int      @default(80)
+
+  updatedAt                        DateTime @default(now())
+
+  merchant                         Merchant @relation(fields: [merchantId], references: [id])
+
+  @@map("merchant_settings")
 }

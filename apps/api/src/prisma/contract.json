@@ -24,6 +24,10 @@
       "model": "MerchantIntegration",
       "namespace": "public"
     },
+    "merchant_settings": {
+      "model": "MerchantSettings",
+      "namespace": "public"
+    },
     "merchants": {
       "model": "Merchant",
       "namespace": "public"
@@ -718,6 +722,21 @@
                   "namespace": "public"
                 }
               },
+              "settings": {
+                "cardinality": "1:1",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "merchantId"
+                  ]
+                },
+                "to": {
+                  "model": "MerchantSettings",
+                  "namespace": "public"
+                }
+              },
               "users": {
                 "cardinality": "1:N",
                 "on": {
@@ -892,6 +911,173 @@
               },
               "namespaceId": "public",
               "table": "merchant_integrations"
+            }
+          },
+          "MerchantSettings": {
+            "fields": {
+              "allowAlternateMethods": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "automaticRecoveryEnabled": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "highRiskThreshold": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "lowRiskThreshold": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "maxRetryAttempts": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "mediumRiskThreshold": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "merchantId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "notifyOnAIDecision": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "notifyOnPaymentFailure": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "notifyOnRecoverySuccess": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "notifyOnRiskAlert": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
+              "retryDelayHours": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "merchant": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "merchantId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Merchant",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "allowAlternateMethods": {
+                  "column": "allowAlternateMethods"
+                },
+                "automaticRecoveryEnabled": {
+                  "column": "automaticRecoveryEnabled"
+                },
+                "highRiskThreshold": {
+                  "column": "highRiskThreshold"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "lowRiskThreshold": {
+                  "column": "lowRiskThreshold"
+                },
+                "maxRetryAttempts": {
+                  "column": "maxRetryAttempts"
+                },
+                "mediumRiskThreshold": {
+                  "column": "mediumRiskThreshold"
+                },
+                "merchantId": {
+                  "column": "merchantId"
+                },
+                "notifyOnAIDecision": {
+                  "column": "notifyOnAIDecision"
+                },
+                "notifyOnPaymentFailure": {
+                  "column": "notifyOnPaymentFailure"
+                },
+                "notifyOnRecoverySuccess": {
+                  "column": "notifyOnRecoverySuccess"
+                },
+                "notifyOnRiskAlert": {
+                  "column": "notifyOnRiskAlert"
+                },
+                "retryDelayHours": {
+                  "column": "retryDelayHours"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "merchant_settings"
             }
           },
           "Order": {
@@ -2853,6 +3039,163 @@
                 }
               ]
             },
+            "merchant_settings": {
+              "columns": {
+                "allowAlternateMethods": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "automaticRecoveryEnabled": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "highRiskThreshold": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 80
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "lowRiskThreshold": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 30
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "maxRetryAttempts": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 3
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "mediumRiskThreshold": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 60
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "merchantId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "notifyOnAIDecision": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "notifyOnPaymentFailure": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": true
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "notifyOnRecoverySuccess": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": true
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "notifyOnRiskAlert": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
+                "retryDelayHours": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 24
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "merchantId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "merchant_settings"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "merchants"
+                  }
+                }
+              ],
+              "indexes": [],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "merchantId"
+                  ]
+                }
+              ]
+            },
             "merchants": {
               "columns": {
                 "businessName": {
@@ -4274,7 +4617,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "4365c1b151084f4a8610c16cd0f1c6a8bb626723d9f13c7a41845b67384eee4a"
+    "storageHash": "68aac6cc0b0ce4e8a2fb2e6e8d173c2efbf1be474c9348101cc3478df7dd3967"
   },
   "capabilities": {
     "postgres": {
