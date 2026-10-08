@@ -1,5 +1,6 @@
 import { db } from "../../prisma/db.js";
 import type { CreateCustomerInput, UpdateCustomerInput } from "./customer.schemas.js";
+import { logActivity } from "../audit/audit.service.js";
 
 export async function createCustomer(merchantId: number, data: CreateCustomerInput) {
   const customer = await db.orm.public.Customer.create({
@@ -11,6 +12,16 @@ export async function createCustomer(merchantId: number, data: CreateCustomerInp
     status: data.status || "ACTIVE",
     segmentId: data.segmentId || null,
   });
+
+  await logActivity({
+    merchantId,
+    actorType: "MERCHANT_API",
+    eventType: "CUSTOMER_CREATED",
+    entityType: "CUSTOMER",
+    entityId: customer.id,
+    description: `Customer ${customer.name} created`,
+  });
+
   return customer;
 }
 

@@ -1,6 +1,7 @@
 import { db } from "../../prisma/db.js";
 import type { CreateIntegrationInput, UpdateIntegrationInput } from "./integration.schemas.js";
 import { encrypt } from "../../utils/crypto.js";
+import { logActivity } from "../audit/audit.service.js";
 import { Temporal } from "@js-temporal/polyfill";
 
 export async function createIntegration(merchantId: number, data: CreateIntegrationInput) {
@@ -19,6 +20,14 @@ export async function createIntegration(merchantId: number, data: CreateIntegrat
     secretReference: data.secretReference ? encrypt(data.secretReference) : null,
     webhookSecretRef: data.webhookSecret ? encrypt(data.webhookSecret) : null,
     configuration: (data.configuration as any) || null
+  });
+  await logActivity({
+    merchantId,
+    actorType: "MERCHANT_API",
+    eventType: "INTEGRATION_CREATED",
+    entityType: "INTEGRATION",
+    entityId: integration.id,
+    description: `Configured new integration for ${data.provider}`,
   });
   
   return integration;
@@ -61,17 +70,46 @@ export async function updateIntegration(merchantId: number, id: number, data: Up
 
   await db.orm.public.MerchantIntegration.where({ merchantId, id }).update(updateData);
   
+  await logActivity({
+    merchantId,
+    actorType: "MERCHANT_API",
+    eventType: "INTEGRATION_UPDATED",
+    entityType: "INTEGRATION",
+    entityId: id,
+    description: `Updated integration settings`,
+  });
+
   return getIntegrationById(merchantId, id);
 }
 
 export async function deleteIntegration(merchantId: number, id: number) {
-  await db.orm.public.MerchantIntegration.where({ merchantId, id }).delete();
+  const existing = await getIntegrationById(merchantId, id);
+  if (existing) {
+    await db.orm.public.MerchantIntegration.where({ merchantId, id }).delete();
+    await logActivity({
+      merchantId,
+      actorType: "MERCHANT_API",
+      eventType: "INTEGRATION_DELETED",
+      entityType: "INTEGRATION",
+      entityId: id,
+      description: `Removed integration for ${existing.provider}`,
+    });
+  }
 }
 
 export async function markIntegrationConnected(merchantId: number, id: number) {
   await db.orm.public.MerchantIntegration.where({ merchantId, id }).update({
     status: "CONNECTED",
     lastSyncedAt: Temporal.Now.instant() as any
+  });
+  
+  await logActivity({
+    merchantId,
+    actorType: "SYSTEM",
+    eventType: "INTEGRATION_CONNECTED",
+    entityType: "INTEGRATION",
+    entityId: id,
+    description: `Integration connection verified successfully`,
   });
 }
 

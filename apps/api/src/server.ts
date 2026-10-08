@@ -20,6 +20,7 @@ import aiDecisionRoutes from "./modules/ai-decision/ai-decision.routes.js";
 import recoveryRoutes from "./modules/recovery/recovery.routes.js";
 import analyticsRoutes from "./modules/analytics/analytics.routes.js";
 import integrationRoutes from "./modules/integrations/integration.routes.js";
+import auditRoutes from "./modules/audit/audit.routes.js";
 
 const app = express();
 
@@ -62,6 +63,7 @@ app.use("/api/risk-cases", aiDecisionRoutes); // Mount AI decision routes onto /
 app.use("/api/recovery/actions", recoveryRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/integrations", integrationRoutes);
+app.use("/api/activity", auditRoutes);
 
 app.listen(PORT, () => {
   console.log(`RecoverIQ API running on port ${PORT}`);

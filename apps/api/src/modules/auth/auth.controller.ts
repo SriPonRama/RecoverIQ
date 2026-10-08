@@ -4,6 +4,7 @@ import { registerSchema, loginSchema, updatePasswordSchema } from "./auth.schema
 import { registerMerchant, loginUser, changePassword } from "./auth.service.js";
 import type { AuthenticatedRequest } from "../../middleware/auth.middleware.js";
 import { db } from "../../prisma/db.js";
+import { logActivity } from "../audit/audit.service.js";
 export async function signup(
   req: Request,
   res: Response
@@ -87,6 +88,15 @@ export async function login(
       expires: new Date(
         result.session.expiresAt.epochMilliseconds
       ),
+    });
+
+    await logActivity({
+      merchantId: result.user.merchantId,
+      actorType: "USER",
+      actorId: result.user.id,
+      eventType: "LOGIN",
+      entityType: "SESSION",
+      description: "User logged in",
     });
 
     return res.status(200).json({
@@ -192,6 +202,16 @@ export async function updatePassword(req: AuthenticatedRequest, res: Response) {
 
     await changePassword(req.user.id, parsed.data.currentPassword, parsed.data.newPassword);
 
+    await logActivity({
+      merchantId: req.user.merchantId,
+      actorType: "USER",
+      actorId: req.user.id,
+      eventType: "PASSWORD_UPDATE",
+      entityType: "USER",
+      entityId: req.user.id,
+      description: "User changed their password",
+    });
+
     return res.status(200).json({
       success: true,
       message: "Password updated successfully",
@@ -287,6 +307,16 @@ export async function revokeSession(req: AuthenticatedRequest, res: Response) {
     }
 
     await db.orm.public.Session.where({ id: sessionId }).delete();
+
+    await logActivity({
+      merchantId: req.user.merchantId,
+      actorType: "USER",
+      actorId: req.user.id,
+      eventType: "SESSION_REVOKED",
+      entityType: "SESSION",
+      entityId: sessionId,
+      description: "User revoked a session",
+    });
 
     return res.status(200).json({
       success: true,

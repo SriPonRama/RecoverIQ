@@ -9,8 +9,9 @@ import { RecoverySettings } from "../components/settings/RecoverySettings"
 import { RiskSettings } from "../components/settings/RiskSettings"
 import { DangerZoneSettings } from "../components/settings/DangerZoneSettings"
 import { BillingSettings } from "../components/settings/BillingSettings"
+import { ActivitySettings } from "../components/settings/ActivitySettings"
 
-type SettingsTab = 'General' | 'Account' | 'Security' | 'Notifications' | 'Recovery' | 'Risk' | 'Team' | 'Billing' | 'Danger Zone';
+type SettingsTab = 'General' | 'Account' | 'Security' | 'Notifications' | 'Recovery' | 'Risk' | 'Team' | 'Activity' | 'Billing' | 'Danger Zone';
 
 export function Settings() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('General');
@@ -23,6 +24,7 @@ export function Settings() {
     { id: 'Notifications', label: 'NOTIFICATIONS', description: 'Alert preferences', status: 'AVAILABLE' },
     { id: 'Recovery', label: 'RECOVERY', description: 'Engine preferences', status: 'AVAILABLE' },
     { id: 'Risk', label: 'RISK', description: 'AI configuration', status: 'AVAILABLE' },
+    { id: 'Activity', label: 'ACTIVITY', description: 'Audit logs', status: 'AVAILABLE' },
     { id: 'Billing', label: 'BILLING', description: 'Subscription', status: 'COMING SOON' },
     { id: 'Danger Zone', label: 'DANGER ZONE', description: 'Destructive actions', status: 'RESTRICTED' },
   ];
@@ -60,6 +62,8 @@ export function Settings() {
         return <RecoverySettings />;
       case 'Risk':
         return <RiskSettings />;
+      case 'Activity':
+        return <ActivitySettings />;
       case 'Billing':
         return <BillingSettings />;
       case 'Danger Zone':

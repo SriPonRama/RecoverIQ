@@ -2,6 +2,7 @@ import type { Response } from "express";
 import { db } from "../../prisma/db.js";
 import { updateMerchantSchema, updateSettingsSchema } from "./merchant.schemas.js";
 import type { AuthenticatedRequest } from "../../middleware/auth.middleware.js";
+import { logActivity } from "../audit/audit.service.js";
 
 // Helper to ensure merchant settings exist
 async function ensureMerchantSettings(merchantId: number) {
@@ -83,6 +84,16 @@ export async function updateMe(req: AuthenticatedRequest, res: Response) {
     
     const updatedMerchant = await db.orm.public.Merchant.where({ id: req.user.merchantId }).first();
 
+    await logActivity({
+      merchantId: req.user.merchantId,
+      actorType: "USER",
+      actorId: req.user.id,
+      eventType: "MERCHANT_PROFILE_UPDATED",
+      entityType: "MERCHANT",
+      entityId: req.user.merchantId,
+      description: "Merchant profile was updated",
+    });
+
     return res.status(200).json({
       success: true,
       message: "Merchant profile updated successfully",
@@ -148,6 +159,16 @@ export async function updateSettings(req: AuthenticatedRequest, res: Response) {
     
     const updatedSettings = await db.orm.public.MerchantSettings.where({ merchantId: req.user.merchantId }).first();
 
+    await logActivity({
+      merchantId: req.user.merchantId,
+      actorType: "USER",
+      actorId: req.user.id,
+      eventType: "SETTINGS_UPDATED",
+      entityType: "MERCHANT_SETTINGS",
+      description: "Merchant settings were updated",
+      metadata: parsed.data
+    });
+
     return res.status(200).json({
       success: true,
       message: "Merchant settings updated successfully",
@@ -183,6 +204,16 @@ export async function deactivateMerchant(req: AuthenticatedRequest, res: Respons
         await db.orm.public.User.where({ id: userId }).update({ isActive: false });
       }
     }
+
+    await logActivity({
+      merchantId: req.user.merchantId,
+      actorType: "USER",
+      actorId: req.user.id,
+      eventType: "MERCHANT_DEACTIVATED",
+      entityType: "MERCHANT",
+      entityId: req.user.merchantId,
+      description: "Merchant account was deactivated",
+    });
 
     return res.status(200).json({
       success: true,

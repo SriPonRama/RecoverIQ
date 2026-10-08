@@ -1,6 +1,7 @@
 import { db } from "../../prisma/db.js";
 import { Temporal } from "@js-temporal/polyfill";
 import { executeSimulatedRecovery } from "./recovery.provider.js";
+import { logActivity } from "../audit/audit.service.js";
 
 import { recoveryQueue } from "./recovery.queue.js";
 
@@ -155,6 +156,15 @@ export async function executeRecoveryAction(merchantId: number, actionId: number
       status: "COMPLETED",
       externalReference: result.externalReference
     });
+
+    await logActivity({
+      merchantId,
+      actorType: "SYSTEM",
+      eventType: "RECOVERY_EXECUTED",
+      entityType: "RECOVERY_ACTION",
+      entityId: actionId,
+      description: `Recovery action executed successfully. Recovered ₹${payment.amount}.`,
+    });
   } else {
     // 9b. Check if we should retry based on settings
     const settings = await db.orm.public.MerchantSettings.where({ merchantId }).first();
@@ -256,6 +266,15 @@ export async function cancelRecoveryAction(merchantId: number, actionId: number)
 
   await db.orm.public.RecoveryAction.where({ id: actionId }).update({
     status: "CANCELLED"
+  });
+
+  await logActivity({
+    merchantId,
+    actorType: "MERCHANT_API",
+    eventType: "RECOVERY_CANCELLED",
+    entityType: "RECOVERY_ACTION",
+    entityId: actionId,
+    description: "Recovery action was cancelled",
   });
 
   return await db.orm.public.RecoveryAction.where({ id: actionId }).first();
