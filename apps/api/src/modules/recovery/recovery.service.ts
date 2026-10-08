@@ -2,6 +2,8 @@ import { db } from "../../prisma/db.js";
 import { Temporal } from "@js-temporal/polyfill";
 import { executeSimulatedRecovery } from "./recovery.provider.js";
 
+import { recoveryQueue } from "./recovery.queue.js";
+
 /**
  * Creates a Recovery Action based on a trusted AI Decision.
  */
@@ -25,6 +27,29 @@ export async function createRecoveryAction(merchantId: number, aiDecisionId: num
     actionType: aiDecision.recommendedAction,
     status: "PENDING"
   });
+
+  // 4. Enqueue Job if eligible
+  // Eligible: PENDING, not MANUAL_REVIEW, not CANCELLED
+  if (action.status === "PENDING" && action.actionType !== "MANUAL_REVIEW") {
+    // Check Merchant Settings
+    const settings = await db.orm.public.MerchantSettings.where({ merchantId }).first();
+    if (settings?.automaticRecoveryEnabled) {
+      await recoveryQueue.add(
+        "recover-action", 
+        {
+          merchantId,
+          recoveryActionId: action.id
+        },
+        {
+          attempts: settings.maxRetryAttempts,
+          backoff: {
+            type: "exponential",
+            delay: 1000 * 60 * 60 * settings.retryDelayHours // e.g. 24h delay for retry
+          }
+        }
+      );
+    }
+  }
 
   return action;
 }
@@ -131,10 +156,16 @@ export async function executeRecoveryAction(merchantId: number, actionId: number
       externalReference: result.externalReference
     });
   } else {
+    // 9b. Check if we should retry based on settings
+    const settings = await db.orm.public.MerchantSettings.where({ merchantId }).first();
+    const maxRetries = settings?.maxRetryAttempts || 1;
+    const canRetry = nextAttemptNumber < maxRetries;
+
     await db.orm.public.RecoveryAction.where({ id: actionId }).update({
-      status: "FAILED", // or PENDING if we want to allow retries, but FAILED concludes this action
+      status: canRetry ? "PENDING" : "FAILED",
       executedAt
     });
+
     await db.orm.public.RecoveryOutcome.create({
       recoveryActionId: actionId,
       outcomeType: "FAILED",
@@ -142,6 +173,10 @@ export async function executeRecoveryAction(merchantId: number, actionId: number
       status: "COMPLETED",
       failureReason: result.errorMessage
     });
+
+    if (canRetry) {
+      throw new Error(`Execution failed: ${result.errorMessage}. Retrying...`);
+    }
   }
 
   return await db.orm.public.RecoveryAction.where({ id: actionId }).first();

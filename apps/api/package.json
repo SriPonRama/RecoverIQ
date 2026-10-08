@@ -8,6 +8,7 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "test": "echo \"Error: no test specified\"",
+    "worker": "tsx watch src/workers/recovery.worker.ts",
     "contract:emit": "prisma contract emit"
   },
   "keywords": [],
@@ -18,11 +19,13 @@
     "@js-temporal/polyfill": "^0.5.1",
     "@prisma/orm-postgres": "^8.0.0-rc.8",
     "bcrypt": "^6.0.0",
+    "bullmq": "^6.3.11",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "helmet": "^8.3.0",
+    "ioredis": "^6.0.0",
     "jsonwebtoken": "^9.0.3",
     "openai": "^7.15.0",
     "zod": "^4.4.3"
