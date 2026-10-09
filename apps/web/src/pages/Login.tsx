@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom"
 import { Card, CardContent } from "../components/ui/Card"
 import { Button } from "../components/ui/Button"
 import { Input } from "../components/ui/Input"
-import { Shield, AlertCircle, ArrowRight } from "lucide-react"
+import { Shield, AlertCircle, ArrowRight, Eye, EyeOff } from "lucide-react"
 import { useAuth } from "../contexts/AuthContext"
 import shieldBg from "../assets/images/auth/shield-bg.png"
 
@@ -14,6 +14,7 @@ export function Login() {
   
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -134,17 +135,31 @@ export function Login() {
                       </a>
                     </div>
                   </div>
-                  <div className="mt-2">
+                  <div className="mt-2 relative">
                     <Input
                       id="password"
                       name="password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       autoComplete="current-password"
                       required
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      className="pr-10"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center text-landing-text-sec hover:text-landing-graphite focus:outline-none"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                      aria-pressed={showPassword}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5" aria-hidden="true" />
+                      ) : (
+                        <Eye className="h-5 w-5" aria-hidden="true" />
+                      )}
+                    </button>
                   </div>
                 </div>
 

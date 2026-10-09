@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { fetchApi } from "../../lib/api";
-import { Laptop, Trash2 } from "lucide-react";
+import { Laptop, Trash2, Eye, EyeOff } from "lucide-react";
 
 interface Session {
   id: number;
@@ -12,6 +12,9 @@ export function SecuritySettings() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loadingSessions, setLoadingSessions] = useState(true);
@@ -130,48 +133,95 @@ export function SecuritySettings() {
               <label htmlFor="currentPassword" className="block text-sm font-semibold text-[#171717]">
                 Current Password
               </label>
-              <input
-                type="password"
-                name="currentPassword"
-                id="currentPassword"
-                value={formData.currentPassword}
-                onChange={handleChange}
-                className="mt-2 block w-full rounded-xl border-[#DED9CF] px-4 py-2.5 shadow-sm focus:border-[#C7A64A] focus:ring-[#C7A64A] sm:text-sm bg-white text-[#171717]"
-                required
-              />
+              <div className="relative mt-2">
+                <input
+                  type={showCurrentPassword ? "text" : "password"}
+                  name="currentPassword"
+                  id="currentPassword"
+                  value={formData.currentPassword}
+                  onChange={handleChange}
+                  className="block w-full rounded-xl border-[#DED9CF] px-4 py-2.5 shadow-sm focus:border-[#C7A64A] focus:ring-[#C7A64A] sm:text-sm bg-white text-[#171717] pr-10"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#6B6862] hover:text-[#171717] focus:outline-none"
+                  aria-label={showCurrentPassword ? "Hide password" : "Show password"}
+                  aria-pressed={showCurrentPassword}
+                >
+                  {showCurrentPassword ? (
+                    <EyeOff className="h-5 w-5" aria-hidden="true" />
+                  ) : (
+                    <Eye className="h-5 w-5" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
             </div>
 
             <div>
               <label htmlFor="newPassword" className="block text-sm font-semibold text-[#171717]">
                 New Password
               </label>
-              <input
-                type="password"
-                name="newPassword"
-                id="newPassword"
-                value={formData.newPassword}
-                onChange={handleChange}
-                className="mt-2 block w-full rounded-xl border-[#DED9CF] px-4 py-2.5 shadow-sm focus:border-[#C7A64A] focus:ring-[#C7A64A] sm:text-sm bg-white text-[#171717]"
-                required
-                minLength={8}
-              />
-              <p className="mt-2 text-xs text-[#6B6862]">Must be at least 8 characters long.</p>
+              <div className="relative mt-2">
+                <input
+                  type={showNewPassword ? "text" : "password"}
+                  name="newPassword"
+                  id="newPassword"
+                  value={formData.newPassword}
+                  onChange={handleChange}
+                  className="block w-full rounded-xl border-[#DED9CF] px-4 py-2.5 shadow-sm focus:border-[#C7A64A] focus:ring-[#C7A64A] sm:text-sm bg-white text-[#171717] pr-10"
+                  required
+                  minLength={8}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#6B6862] hover:text-[#171717] focus:outline-none"
+                  aria-label={showNewPassword ? "Hide password" : "Show password"}
+                  aria-pressed={showNewPassword}
+                >
+                  {showNewPassword ? (
+                    <EyeOff className="h-5 w-5" aria-hidden="true" />
+                  ) : (
+                    <Eye className="h-5 w-5" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
+              <p className="mt-2 text-xs text-[#6B6862]">
+                Must be at least 8 characters long, contain at least one uppercase letter and one special character.
+              </p>
             </div>
 
             <div>
               <label htmlFor="confirmPassword" className="block text-sm font-semibold text-[#171717]">
                 Confirm New Password
               </label>
-              <input
-                type="password"
-                name="confirmPassword"
-                id="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                className="mt-2 block w-full rounded-xl border-[#DED9CF] px-4 py-2.5 shadow-sm focus:border-[#C7A64A] focus:ring-[#C7A64A] sm:text-sm bg-white text-[#171717]"
-                required
-                minLength={8}
-              />
+              <div className="relative mt-2">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  name="confirmPassword"
+                  id="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  className="block w-full rounded-xl border-[#DED9CF] px-4 py-2.5 shadow-sm focus:border-[#C7A64A] focus:ring-[#C7A64A] sm:text-sm bg-white text-[#171717] pr-10"
+                  required
+                  minLength={8}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-[#6B6862] hover:text-[#171717] focus:outline-none"
+                  aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                  aria-pressed={showConfirmPassword}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-5 w-5" aria-hidden="true" />
+                  ) : (
+                    <Eye className="h-5 w-5" aria-hidden="true" />
+                  )}
+                </button>
+              </div>
             </div>
           </div>
 
